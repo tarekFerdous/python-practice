@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · Replace the nested loop with a dict</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="course">
+  <span>Lesson 1 of 8</span>
+  <a href="../reference/python-toolkit.html">Python toolkit (reference)</a>
+  <a href="../MISSION.md">Mission</a>
+</nav>
+
+<p class="kicker">Hash maps · ~25 minutes</p>
+<h1>Replace the nested loop with a dict</h1>
+<p class="lede">The single most common move in coding interviews. Once you see it, a whole family of problems becomes O(n).</p>
+
+<div class="box win"><b>Your win today:</b> solve <i>Two Sum</i>, <i>Top K Words</i> and <i>Group Anagrams</i> from a blank function, no AI, with tests passing. Two Sum is on the Tech Interview Handbook's list of essential hash-table questions; Group Anagrams is on its recommended list.<sup><a href="https://www.techinterviewhandbook.org/algorithms/hash-table/">1</a></sup></div>
+
+<h2>1. Why a dict is fast</h2>
+<p>Asking <code>x in my_list</code> makes Python walk the list: <b>O(n)</b>. Asking <code>x in my_set</code> or <code>key in my_dict</code> jumps straight to the answer: <b>O(1) on average</b>.<sup><a href="https://docs.python.org/3/builtins/time-complexity.html">2</a></sup> So a loop that does a list lookup each time costs O(n²); swap in a dict and it costs O(n).</p>
+<p class="side">This is a <i>space-time tradeoff</i>: you spend extra memory (the dict) to save time.<sup><a href="https://www.techinterviewhandbook.org/algorithms/hash-table/">1</a></sup> Say that phrase out loud in an interview; it shows you know why.</p>
+
+<h2>2. The pattern on Two Sum</h2>
+<p><i>Given <code>nums</code> and <code>target</code>, return the indices of the two numbers that add up to <code>target</code>.</i></p>
+<h3>Brute force: O(n²)</h3>
+<pre><code>for i in range(len(nums)):
+    for j in range(i + 1, len(nums)):
+        if nums[i] + nums[j] == target:
+            return (i, j)</code></pre>
+<h3>With a dict: O(n) time, O(n) space</h3>
+<pre><code>seen = {}                          <span class="cmt"># value -> index</span>
+for i, x in enumerate(nums):
+    need = target - x
+    if need in seen:               <span class="cmt"># O(1) lookup replaces the inner loop</span>
+        return (seen[need], i)
+    seen[x] = i</code></pre>
+<p>Read it as one question asked at every step: <b>"Have I already seen the number I need?"</b> That question, and the dict that answers it, is the pattern.</p>
+<p class="side">Why check <i>before</i> storing <code>x</code>? So a number can't pair with itself: <code>[3, 4]</code>, target 6, must not return (0, 0).</p>
+
+<h2>3. Three tools that build on the dict</h2>
+<pre><code>from collections import Counter, defaultdict
+
+Counter("banana")                  <span class="cmt"># Counter({'a': 3, 'n': 2, 'b': 1})</span>
+Counter(words).most_common(2)      <span class="cmt"># 2 most frequent (word, count) pairs</span>
+
+groups = defaultdict(list)
+groups[key].append(word)           <span class="cmt"># missing key? an empty list is created first</span>
+
+sorted(words, key=lambda w: (-count[w], w))   <span class="cmt"># count high→low, then A→Z</span></code></pre>
+<ul>
+  <li><b>Counter</b> counts in one line. Ties in <code>most_common</code> come out in first-seen order,<sup><a href="https://docs.python.org/3/library/collections.html">3</a></sup> <i>not</i> alphabetically, so when a problem says "ties alphabetical", sort it yourself.</li>
+  <li><b>defaultdict(list)</b> removes the "if key not in d: d[key] = []" dance. (Careful: <code>.get()</code> does not create the default.<sup><a href="https://docs.python.org/3/library/collections.html">3</a></sup>)</li>
+  <li><b>A tuple as a sort key</b> sorts by the first item, then breaks ties with the next.<sup><a href="https://docs.python.org/3/howto/sorting.html">4</a></sup> Negating a number makes that part descending.</li>
+</ul>
+
+<h2>4. Check yourself (from memory)</h2>
+<p class="meta">Answer without scrolling up. Getting it wrong now is what makes it stick.</p>
+<div class="quiz" id="quiz1"></div>
+
+<h2>5. Your turn</h2>
+<div class="box task">
+<ol class="steps">
+  <li>Turn <b>off</b> Copilot / AI autocomplete.</li>
+  <li>Open the <a href="https://colab.research.google.com/github/tarekFerdous/python-practice/blob/main/exercises/0001-hash-maps/exercises.ipynb">exercise notebook in Colab</a> and fill in the 3 functions. About 15 minutes each.</li>
+  <li>Run the setup cell once, then each function cell and its check cell (<code>Shift+Enter</code>). All PASS = done.</li>
+  <li>For each one, say out loud: brute force → better idea → Big-O. That's what a live interviewer grades.</li>
+  <li>Then tell your teacher (Claude) "done" for a review, or "hint" if stuck for more than 10 minutes.</li>
+</ol>
+</div>
+<p class="side">Hints, only if stuck: <b>top_k_words</b>: clean, <code>Counter</code>, then the tuple-key sort. <b>group_anagrams</b>: what do "eat", "tea" and "ate" look like with their letters sorted? Use that as the dict key.</p>
+
+<h2>Primary source</h2>
+<p>Read <a href="https://www.techinterviewhandbook.org/algorithms/hash-table/">Tech Interview Handbook: Hash table</a> (10 minutes). It's a short, interview-focused page with the classic questions to practise next (Ransom Note is a good bonus).</p>
+
+<footer>
+  <p><b>Anything unclear? Ask your teacher.</b> Type your question in the Claude chat: "why does…", "show me another example of…". That's what it's there for.</p>
+  <p>Sources: [1] <a href="https://www.techinterviewhandbook.org/algorithms/hash-table/">Tech Interview Handbook</a> · [2] <a href="https://docs.python.org/3/builtins/time-complexity.html">Python docs: time complexity</a> · [3] <a href="https://docs.python.org/3/library/collections.html">Python docs: collections</a> · [4] <a href="https://docs.python.org/3/howto/sorting.html">Python docs: Sorting HOW TO</a></p>
+  <p>Next: Lesson 2, strings, two pointers and the sliding window.</p>
+</footer>
+
+<script src="../assets/quiz.js"></script>
+<script>
+Quiz.render('quiz1', [
+  { q: 'Checking <code>x in my_list</code> on a list of n items costs…',
+    options: ['O(1) on average', 'O(n) per check', 'O(log n) per check', 'O(n²) per check'], answer: 1,
+    why: 'A list has no index by value, so Python scans it item by item: O(n).' },
+  { q: 'The same check on a <code>set</code> or <code>dict</code> costs…',
+    options: ['O(n) per check', 'O(log n) per check', 'O(n²) per check', 'O(1) on average'], answer: 3,
+    why: 'Hashing jumps straight to the slot: O(1) average (O(n) only in a pathological worst case).' },
+  { q: 'In the dict version of Two Sum, at each number <code>x</code> you look up…',
+    options: ['x minus target', 'target minus x', 'target times x', 'x itself again'], answer: 1,
+    why: 'You need a partner p with x + p = target, so p = target − x.' },
+  { q: '<code>d = defaultdict(list); d["k"].append(1)</code> does what?',
+    options: ['Raises KeyError on lookup', 'Returns None, nothing stored', 'Creates empty list, appends', 'Appends to shared list'], answer: 2,
+    why: 'A missing key calls the factory (list), stores the new [] under "k", then append runs on it.' },
+  { q: '<code>sorted(words, key=lambda w: (-count[w], w))</code> orders words by…',
+    options: ['Count descending, then alphabetical', 'Count ascending, then alphabetical', 'Alphabetical, then count descending', 'Count descending, ties kept random'], answer: 0,
+    why: 'Tuples compare item by item: −count first (so high counts come first), then the word A→Z for ties.' }
+]);
+</script>
+</body>
+</html>

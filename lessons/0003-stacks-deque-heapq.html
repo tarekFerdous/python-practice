@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 3 · Stacks, deque and heapq</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="course">
+  <span>Lesson 3 of 8</span>
+  <a href="0002-two-pointers-sliding-window.html">← Lesson 2: two pointers</a>
+  <a href="../reference/python-toolkit.html">Python toolkit (reference)</a>
+  <a href="../MISSION.md">Mission</a>
+</nav>
+
+<p class="kicker">Stacks, queues, heaps · ~35 minutes</p>
+<h1>Stacks, deque and heapq</h1>
+<p class="lede">Three containers, three questions: "what came in <b>last</b>?" (stack), "what came in <b>first</b>?" (queue), "what is the <b>smallest</b>?" (heap). Each answers its question in O(1) or O(log n).</p>
+
+<div class="box win"><b>Your win today:</b> Valid Parentheses, a sliding-time request counter (the core of a rate limiter, which Lesson 5 builds), Kth Largest Element and Merge k Sorted Lists, all passing their tests.</div>
+
+<h2>0. Warm-up (no peeking)</h2>
+<p class="meta">First, a 2-minute fix: in the Lesson 2 notebook, the <code>pair_with_sum</code> check now has a case that fails. Find the bug from the FAIL line. Then the quiz.</p>
+<div class="quiz" id="warmup"></div>
+
+<h2>1. Stack: a plain list</h2>
+<p>Push and pop at the <b>end</b> of a list: <code>append</code> and <code>pop()</code> are both O(1).<sup><a href="https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks">1</a></sup> The last thing in is the first thing out.</p>
+<pre><code>stack = []
+stack.append("(")      <span class="cmt"># push</span>
+top = stack[-1]        <span class="cmt"># peek (crashes if empty!)</span>
+stack.pop()            <span class="cmt"># pop, returns the item</span>
+if not stack: ...      <span class="cmt"># empty check: an empty list is falsy</span></code></pre>
+<p>Use it when the newest open thing must be closed first: brackets, undo, nested tags, "previous greater element". For brackets, a dict maps each closer to its opener: <code>{")": "(", "]": "[", "}": "{"}</code>.</p>
+<p class="side">Two edge cases sink most bracket solutions: a closer when the stack is empty (<code>"]"</code>), and openers left over at the end (<code>"(("</code>).</p>
+
+<h2>2. Queue: collections.deque</h2>
+<p><code>list.pop(0)</code> shifts every other item: O(n). A <code>deque</code> adds and removes at <b>both</b> ends in O(1).<sup><a href="https://docs.python.org/3/library/collections.html#collections.deque">2</a></sup></p>
+<pre><code>from collections import deque
+q = deque()
+q.append(x)            <span class="cmt"># in at the right</span>
+oldest = q.popleft()   <span class="cmt"># out at the left, O(1)</span>
+q[0]                   <span class="cmt"># peek at the oldest</span>
+deque(maxlen=3)        <span class="cmt"># keeps only the last 3; old ones fall off</span></code></pre>
+<p>Use it for first-in-first-out work: BFS (Lesson 7), a sliding window over <i>time</i>, the last N events. The request counter is Lesson 2's variable window again: append the new time on the right; <code>while</code> the oldest is too old, <code>popleft()</code>.</p>
+<p class="side">Interview line: "I'll use a deque so dropping old requests from the front is O(1); a list's pop(0) would be O(n)."</p>
+
+<h2>3. Heap: heapq</h2>
+<p><code>heapq</code> turns a plain list into a <b>min-heap</b>: <code>heap[0]</code> is always the smallest. Push and pop are O(log n); <code>heapify</code> on an existing list is O(n).<sup><a href="https://docs.python.org/3/library/heapq.html">3</a></sup></p>
+<pre><code>import heapq
+heap = []
+heapq.heappush(heap, 5)      <span class="cmt"># O(log n)</span>
+smallest = heap[0]           <span class="cmt"># peek, O(1)</span>
+heapq.heappop(heap)          <span class="cmt"># remove smallest, O(log n)</span>
+heapq.heapify(nums)          <span class="cmt"># in place, O(n)</span>
+heapq.heappush(heap, -x)     <span class="cmt"># max-heap trick: store negatives</span></code></pre>
+
+<h3>Top k: keep a heap of size k</h3>
+<p>Sorting everything for the k-th largest is O(n log n). Instead keep a <b>min</b>-heap of the k largest seen so far; when it grows past k, pop the smallest. At the end, <code>heap[0]</code> is the k-th largest. Cost: <b>O(n log k) time, O(k) space</b>, which beats sorting when k is small.</p>
+
+<h3>Tuples in a heap</h3>
+<p>Heaps compare items, and tuples compare <b>element by element</b>. So <code>(value, list_index, position)</code> is ordered by value first, and the extra fields tell you where the item came from. That's the whole trick for merging k sorted lists: start with each list's first item, pop the smallest, push the next item from the <i>same</i> list.</p>
+<p class="side">Total cost for N items across k lists: each item is pushed and popped once at O(log k) → O(N log k) time, O(k) heap space (plus the O(N) output).</p>
+
+<h2>4. Which tool? (from memory)</h2>
+<div class="quiz" id="quiz3"></div>
+
+<h2>5. Your turn</h2>
+<div class="box task">
+<ol class="steps">
+  <li>AI autocomplete <b>off</b>.</li>
+  <li>Open the <a href="https://colab.research.google.com/github/tarekFerdous/python-practice/blob/main/exercises/0003-stacks-deque-heapq/exercises.ipynb">exercise notebook in Colab</a>: 4 exercises, ~10 minutes each. The last one is a LeetCode Hard; take 15 if you need it.</li>
+  <li>Before each: say the brute force and its Big-O, then your idea.</li>
+  <li>Run the setup cell once, then run each function cell and its check cell (<code>Shift+Enter</code>). All PASS = done.</li>
+  <li>When green, tell your teacher the <b>time and space</b> of each. Hidden costs to look for: a <code>sorted()</code>, a <code>pop(0)</code>, a <code>len()</code> of something you rebuild every call.</li>
+</ol>
+</div>
+<p class="side">Lesson 2 lesson: passing tests ≠ correct. Before saying "done", check every <code>if</code>/<code>else</code> branch actually runs. Stuck for 5 minutes? Type "hint" first.</p>
+
+<h2>Primary source</h2>
+<p>Read <a href="https://www.techinterviewhandbook.org/algorithms/heap/">Tech Interview Handbook: Heap</a> and skim its <a href="https://www.techinterviewhandbook.org/algorithms/stack/">Stack</a> and <a href="https://www.techinterviewhandbook.org/algorithms/queue/">Queue</a> pages (10 minutes). Bonus practice: Min Stack, Top K Frequent Elements, Daily Temperatures.</p>
+
+<footer>
+  <p><b>Stuck or curious? Ask your teacher.</b> Type "hint" for a nudge, or "why is heapify O(n) but n pushes O(n log n)?" — any question works.</p>
+  <p>Sources: [1] <a href="https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks">Python tutorial: lists as stacks</a> · [2] <a href="https://docs.python.org/3/library/collections.html#collections.deque">Python docs: collections.deque</a> · [3] <a href="https://docs.python.org/3/library/heapq.html">Python docs: heapq</a> · <a href="https://docs.python.org/3/builtins/time-complexity.html">Python docs: time complexity</a></p>
+  <p>Next: Lesson 4, data wrangling (logs, JSON, CSV).</p>
+</footer>
+
+<script src="../assets/quiz.js"></script>
+<script>
+Quiz.render('warmup', [
+  { q: 'Longest substring without repeats, with a last-seen dict. Time and space?',
+    options: ['O(n²) time, O(1) space', 'O(n) time, O(k) space (k distinct chars)', 'O(n log n) time, O(n) space', 'O(n) time, O(1) space, always'], answer: 1,
+    why: 'Each char is visited once; the dict holds at most one entry per distinct character.' },
+  { q: 'Is <code>"".join(c.lower() for c in s if c.isalnum())</code> O(1) space?',
+    options: ['Yes, it is a generator', 'Yes, strings are immutable', 'No, it builds an O(n) copy', 'Only when s is short'], answer: 2,
+    why: 'The generator is lazy, but join still builds a new string of up to n chars. Pointers that skip junk avoid it (see is_palindrome_v2 in Lesson 2).' },
+  { q: 'Word counts for m distinct words, then <code>sorted()</code> by count. The hidden cost?',
+    options: ['O(m log m) for the sort', 'O(1) for the dict', 'O(m²) for the lookups', 'None, it is O(n)'], answer: 0,
+    why: 'Lesson 1 again: any sort of m items is O(m log m). Today a heap cuts top-k to O(m log k).' }
+]);
+Quiz.render('quiz3', [
+  { q: 'Undo history in a text editor (undo the most recent change first) is a…',
+    options: ['Queue (deque)', 'Min-heap', 'Stack (list)', 'Set'], answer: 2,
+    why: 'Last in, first out.' },
+  { q: '<code>q.pop(0)</code> on a list of n items costs…',
+    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'], answer: 2,
+    why: 'Every remaining item shifts left by one. deque.popleft() is O(1).' },
+  { q: 'In Python, <code>heapq</code> gives you a…',
+    options: ['Max-heap', 'Min-heap', 'Sorted list', 'Balanced tree'], answer: 1,
+    why: 'heap[0] is the smallest. For a max-heap, push negated values.' },
+  { q: 'k-th largest of n numbers with a size-k min-heap costs…',
+    options: ['O(n log k) time, O(k) space', 'O(n log n) time, O(1) space', 'O(k log n) time, O(n) space', 'O(n · k) time, O(k) space'], answer: 0,
+    why: 'n pushes/pops on a heap that never holds more than k + 1 items.' },
+  { q: 'Which comes out of a heap first: <code>(3, 9)</code> or <code>(3, 1)</code>?',
+    options: ['(3, 9): it was pushed first', '(3, 1): ties fall to the 2nd item', 'Python raises an error', 'Random, heaps are not stable'], answer: 1,
+    why: 'Tuples compare element by element; the first elements tie, so the second decides.' }
+]);
+</script>
+</body>
+</html>

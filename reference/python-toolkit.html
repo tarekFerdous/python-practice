@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python toolkit for coding interviews</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="course"><a href="../lessons/0001-hash-maps.html">Lesson 1: hash maps</a> <a href="../lessons/0002-two-pointers-sliding-window.html">Lesson 2: two pointers and sliding window</a> <a href="../lessons/0003-stacks-deque-heapq.html">Lesson 3: stacks, deque, heapq</a></nav>
+<p class="kicker">Reference · grows with each lesson</p>
+<h1>Python toolkit for coding interviews</h1>
+<p class="lede">The compressed version of every lesson. Print it; skim it before the test.</p>
+
+<h2>Big-O you must know</h2>
+<table>
+  <tr><th>Operation</th><th>list</th><th>set / dict</th></tr>
+  <tr><td><code>x in c</code></td><td>O(n)</td><td>O(1) average</td></tr>
+  <tr><td>get / set by key or index</td><td>O(1) by index</td><td>O(1) average</td></tr>
+  <tr><td><code>append</code> / add</td><td>O(1) amortized</td><td>O(1) average</td></tr>
+  <tr><td><code>sorted(c)</code></td><td colspan="2">O(n log n): any sort adds a log factor</td></tr>
+  <tr><td>slice <code>c[a:b]</code>, <code>sum(c)</code></td><td colspan="2">O(length): not free inside a loop</td></tr>
+</table>
+<p class="meta">Source: <a href="https://docs.python.org/3/builtins/time-complexity.html">Python docs: time complexity of built-in types</a>. Dict/set O(1) is average case.</p>
+
+<h2>Hash maps (Lesson 1)</h2>
+<pre><code>seen = {}                            <span class="cmt"># "have I seen it?" → O(1)</span>
+for i, x in enumerate(nums):         <span class="cmt"># index + value</span>
+    if target - x in seen: ...
+    seen[x] = i
+d.get(key, default)                  <span class="cmt"># no KeyError</span>
+
+from collections import Counter, defaultdict
+c = Counter(words)                   <span class="cmt"># counts</span>
+c.most_common(k)                     <span class="cmt"># ties: first-seen order, NOT alphabetical</span>
+g = defaultdict(list); g[k].append(v) <span class="cmt"># grouping; .get() won't create the default</span>
+
+sorted(xs, key=lambda w: (-c[w], w)) <span class="cmt"># tuple key: count desc, then A→Z</span>
+"".join(sorted(word))                <span class="cmt"># anagram signature: "tea" → "aet"</span></code></pre>
+<p><b>Spot it:</b> a nested loop whose inner loop <i>searches</i> for something → store what you've seen in a dict or set.</p>
+
+<h2>Two pointers and sliding window (Lesson 2)</h2>
+<pre><code>left, right = 0, len(s) - 1          <span class="cmt"># both ends → meet in the middle</span>
+while left &lt; right: ...              <span class="cmt"># palindrome, pair sum in a SORTED list</span>
+ch.isalnum(), ch.lower()             <span class="cmt"># skip non letters/digits; ignore case</span>
+
+window = sum(nums[:k])               <span class="cmt"># fixed window: in one, out one</span>
+window += nums[r] - nums[r - k]
+
+left = 0                             <span class="cmt"># variable window</span>
+for right, ch in enumerate(s):
+    <span class="cmt"># add ch; while invalid: drop s[left], left += 1</span>
+    best = max(best, right - left + 1)   <span class="cmt"># +1: both ends inclusive</span></code></pre>
+<p><b>Spot it:</b> "consecutive", "subarray", "substring" → sliding window. "Sorted" + a pair/triple → pointers from both ends (O(1) space vs the dict's O(n)).</p>
+
+<h2>Stacks, deque and heapq (Lesson 3)</h2>
+<pre><code>stack = []; stack.append(x); stack.pop(); stack[-1]   <span class="cmt"># LIFO, O(1); check `if not stack` first</span>
+
+from collections import deque
+q = deque(); q.append(x); q.popleft(); q[0]          <span class="cmt"># FIFO, O(1) both ends (list.pop(0) is O(n))</span>
+
+import heapq                                         <span class="cmt"># MIN-heap on a plain list</span>
+heapq.heappush(h, x); heapq.heappop(h); h[0]         <span class="cmt"># O(log n), O(log n), O(1)</span>
+heapq.heapify(nums)                                  <span class="cmt"># O(n), in place</span>
+heapq.heappush(h, -x)                                <span class="cmt"># max-heap: negate</span>
+heapq.heappush(h, (priority, i, item))               <span class="cmt"># tuples compare left to right</span>
+heapq.nlargest(k, nums)                              <span class="cmt"># O(n log k)</span></code></pre>
+<p><b>Spot it:</b> matching / nesting / "most recent first" &rarr; stack. "Oldest first", events in the last N seconds, BFS &rarr; deque. "Top k", "k-th largest", "merge sorted" &rarr; heap.</p>
+
+<h2>How to talk in a live test</h2>
+<ol class="steps">
+  <li>Restate the problem; ask about edge cases (empty, duplicates, negatives, size of n).</li>
+  <li>Say the brute force and its Big-O.</li>
+  <li>Say the better idea ("a dict of value → index lets me…"), then code it.</li>
+  <li>Trace one example by hand; state the final time and space complexity.</li>
+</ol>
+
+<footer>Questions about anything here? Ask your teacher in the Claude chat.</footer>
+</body>
+</html>
